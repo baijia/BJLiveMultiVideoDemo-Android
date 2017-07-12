@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../android-live-core/BJHL-LivePlayer/liveplayer-sdk-core/liveplayer-sdk-core.iml" filepath="$PROJECT_DIR$/../../android-live-core/BJHL-LivePlayer/liveplayer-sdk-core/liveplayer-sdk-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../android-live-core/BJHL-LivePlayer/liveplayer-sdk-core-ppt/liveplayer-sdk-core-ppt.iml" filepath="$PROJECT_DIR$/../../android-live-core/BJHL-LivePlayer/liveplayer-sdk-core-ppt/liveplayer-sdk-core-ppt.iml" />
       <module fileurl="file://$PROJECT_DIR$/multivideodemo.iml" filepath="$PROJECT_DIR$/multivideodemo.iml" />
     </modules>
   </component>
