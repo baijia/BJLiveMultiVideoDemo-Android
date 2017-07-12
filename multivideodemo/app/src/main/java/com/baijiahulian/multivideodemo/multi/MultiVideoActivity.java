@@ -14,8 +14,13 @@ import com.baijiahulian.livecore.LiveSDK;
 import com.baijiahulian.livecore.context.LPConstants;
 import com.baijiahulian.livecore.context.LPError;
 import com.baijiahulian.livecore.context.LiveRoom;
+import com.baijiahulian.livecore.context.OnLiveRoomListener;
 import com.baijiahulian.livecore.launch.LPLaunchListener;
+import com.baijiahulian.livecore.models.imodels.IMediaModel;
 import com.baijiahulian.multivideodemo.R;
+import com.baijiahulian.multivideodemo.adapter.RemoteVideoAdapter;
+
+import java.util.List;
 
 public class MultiVideoActivity extends AppCompatActivity implements MultiVideoContract.View, MultiVideoRouterListener {
     //view
@@ -27,9 +32,14 @@ public class MultiVideoActivity extends AppCompatActivity implements MultiVideoC
     //logic
     private MultiVideoContract.Presenter mPresenter;
     private LiveRoom liveRoom;
+    private List<IMediaModel> remoteList;
 
     //listeners
     private LPLaunchListener launchListener;
+    private OnLiveRoomListener onLiveRoomListener;
+
+    //adapter
+    private RemoteVideoAdapter remoteVideoAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +58,7 @@ public class MultiVideoActivity extends AppCompatActivity implements MultiVideoC
     }
 
     private void initAdapters() {
-
+        remoteVideoAdapter = new RemoteVideoAdapter(this);
     }
 
     private void initListeners() {
@@ -70,6 +80,24 @@ public class MultiVideoActivity extends AppCompatActivity implements MultiVideoC
                 launchSuccess();
             }
         };
+        //房间出错监听
+        onLiveRoomListener = new OnLiveRoomListener() {
+            @Override
+            public void onError(LPError lpError) {
+                //断开连接了
+                if (lpError.getCode() == LPError.CODE_ERROR_NETWORK_FAILURE
+                        || lpError.getCode() == LPError.CODE_ERROR_ROOMSERVER_LOSE_CONNECTION
+                        || lpError.getCode() == LPError.CODE_ERROR_MEDIA_SERVER_CONNECT_FAILED) {
+                    Toast.makeText(MultiVideoActivity.this, "已断开连接，即将退出", Toast.LENGTH_SHORT).show();
+                    flMySelf.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            finish();
+                        }
+                    }, 2000);
+                }
+            }
+        };
 
     }
 
@@ -80,6 +108,7 @@ public class MultiVideoActivity extends AppCompatActivity implements MultiVideoC
         glCamera.setZOrderMediaOverlay(true);
         flMySelf.addView(glCamera);
         liveRoom.getRecorder().setPreview(glCamera);
+        liveRoom.setOnLiveRoomListener(onLiveRoomListener);
 
         mPresenter.onLaunchSuccess();
     }
@@ -101,6 +130,12 @@ public class MultiVideoActivity extends AppCompatActivity implements MultiVideoC
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPresenter.destroy();
+    }
+
+    @Override
     public void setLiveRoom(LiveRoom liveRoom) {
         this.liveRoom = liveRoom;
     }
@@ -108,5 +143,53 @@ public class MultiVideoActivity extends AppCompatActivity implements MultiVideoC
     @Override
     public LiveRoom getLiveRoom() {
         return liveRoom;
+    }
+
+    @Override
+    public void mediaInfoInit(List<IMediaModel> mediaModelList) {
+        this.remoteList = mediaModelList;
+        remoteVideoAdapter.setDataList(mediaModelList);
+        remoteVideoAdapter.setRouterListener(this);
+        rvRemoteVideo.setAdapter(remoteVideoAdapter);
+    }
+
+    @Override
+    public void mediaInfoNew(IMediaModel mediaModel) {
+        remoteList.add(mediaModel);
+        remoteVideoAdapter.setDataList(remoteList);
+        remoteVideoAdapter.notifyItemInserted(remoteList.size());
+    }
+
+
+    @Override
+    public void mediaInfoChange(IMediaModel mediaModel) {
+
+    }
+
+    @Override
+    public void mediaInfoClose(IMediaModel mediaModel) {
+        remoteVideoAdapter.notifyItemRemoved(getSpecificPosition(mediaModel));
+        removeSpecificRemote(mediaModel);
+        remoteVideoAdapter.setDataList(remoteList);
+    }
+
+    private void removeSpecificRemote(IMediaModel mediaModel) {
+        if (remoteList == null || remoteList.size() <= 0) return;
+        for (int i = 0; i < remoteList.size(); i++) {
+            if (mediaModel.getUser().getUserId().equals(remoteList.get(i).getUser().getUserId())) {
+                remoteList.remove(i);
+                return;
+            }
+        }
+    }
+
+    private int getSpecificPosition(IMediaModel mediaModel) {
+        if (remoteList == null || remoteList.size() <= 0) return 0;
+        for (int i = 0; i < remoteList.size(); i++) {
+            if (mediaModel.getUser().getUserId().equals(remoteList.get(i).getUser().getUserId())) {
+                return i;
+            }
+        }
+        return 0;
     }
 }

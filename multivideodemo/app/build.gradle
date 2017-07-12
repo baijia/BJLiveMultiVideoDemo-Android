@@ -29,5 +29,6 @@ dependencies {
     compile 'com.afollestad.material-dialogs:commons:0.9.4.5'
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:recyclerview-v7:25.3.1'
-    compile project(path: ':liveplayer-sdk-core')
+//    compile project(path: ':liveplayer-sdk-core')
+    compile 'com.baijia.live:liveplayer-sdk-core:0.4.1'
 }
